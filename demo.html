@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Generator</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #6b8cbc;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .palette-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .color-box {
+            flex: 1;
+            min-width: 150px;
+            height: 180px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .color-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .color-value {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .controls {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-secondary {
+            background-color: var(--light);
+            color: var(--dark);
+            border: 1px solid #dee2e6;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .slider-container {
+            margin: 20px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        .saved-palettes {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .saved-palette {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        
+        .saved-palette:hover {
+            transform: scale(1.03);
+        }
+        
+        .saved-color {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: var(--success);
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .color-box {
+                min-width: 120px;
+                height: 160px;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            button {
+                flex: 1;
+                min-width: 140px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .color-box {
+                min-width: 100%;
+                height: 80px;
+                flex-direction: row;
+                align-items: center;
+            }
+            
+            .palette-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Color Palette Generator</h1>
+            <p class="subtitle">Create beautiful color schemes for your projects</p>
+        </header>
+        
+        <div class="palette-container" id="palette">
+            <!-- Color boxes will be generated here -->
+        </div>
+        
+        <div class="controls">
+            <div class="button-group">
+                <button class="btn-primary" id="generateBtn">Generate New Palette</button>
+                <button class="btn-secondary" id="lockAllBtn">Lock All Colors</button>
+                <button class="btn-secondary" id="unlockAllBtn">Unlock All Colors</button>
+                <button class="btn-success" id="saveBtn">Save Palette</button>
+            </div>
+            
+            <div class="slider-container">
+                <label for="hueRange">Adjust Hue:</label>
+                <input type="range" id="hueRange" min="0" max="360" value="180">
+            </div>
+            
+            <div class="slider-container">
+                <label for="saturationRange">Adjust Saturation:</label>
+                <input type="range" id="saturationRange" min="0" max="100" value="50">
+            </div>
+        </div>
+        
+        <div class="saved-palettes">
+            <h2>Saved Palettes</h2>
+            <div class="palette-grid" id="savedPalettes">
+                <!-- Saved palettes will appear here -->
+            </div>
+            <div class="empty-state" id="emptyState">
+                <p>No saved palettes yet. Generate a palette you like and save it!</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">Color copied to clipboard!</div>
+
+    <script>
+        // DOM Elements
+        const paletteContainer = document.getElementById('palette');
+        const generateBtn = document.getElementById('generateBtn');
+        const lockAllBtn = document.getElementById('lockAllBtn');
+        const unlockAllBtn = document.getElementById('unlockAllBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const hueRange = document.getElementById('hueRange');
+        const saturationRange = document.getElementById('saturationRange');
+        const savedPalettes = document.getElementById('savedPalettes');
+        const emptyState = document.getElementById('emptyState');
+        const notification = document.getElementById('notification');
+
+        // State
+        let currentPalette = [];
+        let savedPalettesList = JSON.parse(localStorage.getItem('savedPalettes')) || [];
+
+        // Initialize
+        function init() {
+            generatePalette();
+            updateSavedPalettesDisplay();
+            
+            // Event Listeners
+            generateBtn.addEventListener('click', generatePalette);
+            lockAllBtn.addEventListener('click', lockAllColors);
+            unlockAllBtn.addEventListener('click', unlockAllColors);
+            saveBtn.addEventListener('click', savePalette);
+            hueRange.addEventListener('input', adjustPalette);
+            saturationRange.addEventListener('input', adjustPalette);
+        }
+
+        // Generate a random color
+        function generateColor() {
+            const hue = Math.floor(Math.random() * 360);
+            const saturation = 40 + Math.floor(Math.random() * 40);
+            const lightness = 40 + Math.floor(Math.random() * 30);
+            
+            return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        }
+
+        // Generate a palette of 5 colors
+        function generatePalette() {
+            currentPalette = [];
+            paletteContainer.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const color = generateColor();
+                currentPalette.push({
+                    color: color,
+                    locked: false
+                });
+                
+                createColorBox(color, i);
+            }
+        }
+
+        // Create a color box element
+        function createColorBox(color, index) {
+            const colorBox = document.createElement('div');
+            colorBox.className = 'color-box';
+            colorBox.style.backgroundColor = color;
+            colorBox.setAttribute('data-index', index);
+            
+            const colorValue = document.createElement('div');
+            colorValue.className = 'color-value';
+            colorValue.textContent = color;
+            
+            const lockBtn = document.createElement('button');
+            lockBtn.className = 'btn-secondary';
+            lockBtn.textContent = '🔓';
+            lockBtn.style.fontSize = '1.2rem';
+            lockBtn.style.padding = '5px 10px';
+            
+            lockBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleLock(index, lockBtn);
+            });
+            
+            colorBox.appendChild(colorValue);
+            colorBox.appendChild(lockBtn);
+            
+            colorBox.addEventListener('click', () => {
+                copyToClipboard(color);
+                showNotification();
+            });
+            
+            paletteContainer.appendChild(colorBox);
+        }
+
+        // Toggle lock state of a color
+        function toggleLock(index, button) {
+            currentPalette[index].locked = !currentPalette[index].locked;
+            button.textContent = currentPalette[index].locked ? '🔒' : '🔓';
+        }
+
+        // Lock all colors
+        function lockAllColors() {
+            currentPalette.forEach((colorObj, index) => {
+                colorObj.locked = true;
+                const colorBox = paletteContainer.children[index];
+                const lockBtn = colorBox.querySelector('button');
+                lockBtn.textContent = '🔒';
+            });
+        }
+
+        // Unlock all colors
+        function unlockAllColors() {
+            currentPalette.forEach((colorObj, index) => {
+                colorObj.locked = false;
+                const colorBox = paletteContainer.children[index];
+                const lockBtn = colorBox.querySelector('button');
+                lockBtn.textContent = '🔓';
+            });
+        }
+
+        // Adjust palette based on hue and saturation sliders
+        function adjustPalette() {
+            const hueAdjust = parseInt(hueRange.value);
+            const saturationAdjust = parseInt(saturationRange.value);
+            
+            currentPalette.forEach((colorObj, index) => {
+                if (!colorObj.locked) {
+                    // Extract HSL values from the color string
+                    const hslValues = colorObj.color.match(/\d+/g);
+                    let hue = parseInt(hslValues[0]);
+                    let saturation = parseInt(hslValues[1]);
+                    let lightness = parseInt(hslValues[2]);
+                    
+                    // Adjust values
+                    hue = (hue + hueAdjust) % 360;
+                    saturation = Math.min(100, Math.max(0, saturationAdjust));
+                    
+                    // Create new color
+                    const newColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                    colorObj.color = newColor;
+                    
+                    // Update display
+                    const colorBox = paletteContainer.children[index];
+                    colorBox.style.backgroundColor = newColor;
+                    colorBox.querySelector('.color-value').textContent = newColor;
+                }
+            });
+        }
+
+        // Save current palette
+        function savePalette() {
+            const colors = currentPalette.map(colorObj => colorObj.color);
+            savedPalettesList.push(colors);
+            localStorage.setItem('savedPalettes', JSON.stringify(savedPalettesList));
+            updateSavedPalettesDisplay();
+        }
+
+        // Update the display of saved palettes
+        function updateSavedPalettesDisplay() {
+            savedPalettes.innerHTML = '';
+            
+            if (savedPalettesList.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            savedPalettesList.forEach((palette, index) => {
+                const paletteElement = document.createElement('div');
+                paletteElement.className = 'saved-palette';
+                
+                palette.forEach(color => {
+                    const colorElement = document.createElement('div');
+                    colorElement.className = 'saved-color';
+                    colorElement.style.backgroundColor = color;
+                    colorElement.textContent = color;
+                    paletteElement.appendChild(colorElement);
+                });
+                
+                // Add click event to load the palette
+                paletteElement.addEventListener('click', () => {
+                    loadPalette(palette);
+                });
+                
+                // Add delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-secondary';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.style.width = '100%';
+                deleteBtn.style.borderRadius = '0';
+                deleteBtn.style.padding = '8px';
+                
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deletePalette(index);
+                });
+                
+                paletteElement.appendChild(deleteBtn);
+                savedPalettes.appendChild(paletteElement);
+            });
+        }
+
+        // Load a saved palette
+        function loadPalette(colors) {
+            currentPalette = [];
+            paletteContainer.innerHTML = '';
+            
+            colors.forEach((color, index) => {
+                currentPalette.push({
+                    color: color,
+                    locked: false
+                });
+                
+                createColorBox(color, index);
+            });
+        }
+
+        // Delete a saved palette
+        function deletePalette(index) {
+            savedPalettesList.splice(index, 1);
+            localStorage.setItem('savedPalettes', JSON.stringify(savedPalettesList));
+            updateSavedPalettesDisplay();
+        }
+
+        // Copy color to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('Color copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            });
+        }
+
+        // Show notification
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
